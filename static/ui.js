@@ -2,9 +2,9 @@ const { ScramjetController } = $scramjetLoadController();
 
 const scramjet = new ScramjetController({
 	files: {
-		wasm: "/scram/scramjet.wasm.wasm",
-		all: "/scram/scramjet.all.js",
-		sync: "/scram/scramjet.sync.js",
+		wasm: scramjetPath("scram/scramjet.wasm.wasm"),
+		all: scramjetPath("scram/scramjet.all.js"),
+		sync: scramjetPath("scram/scramjet.sync.js"),
 	},
 	flags: {
 		rewriterLogs: false,
@@ -17,7 +17,9 @@ const scramjet = new ScramjetController({
 scramjet.init();
 navigator.serviceWorker.register("./sw.js");
 
-const connection = new BareMux.BareMuxConnection("/baremux/worker.js");
+const connection = new BareMux.BareMuxConnection(
+	scramjetPath("baremux/worker.js")
+);
 const flex = css`
 	display: flex;
 `;
@@ -82,20 +84,22 @@ function Config() {
         <div style="align-self: end">
           <div class=${[flex, "buttons"]}>
             <button on:click=${() => {
-							connection.setTransport("/baremod/index.mjs", [store.bareurl]);
-							store.transport = "/baremod/index.mjs";
+							connection.setTransport(scramjetPath("baremod/index.mjs"), [
+								store.bareurl,
+							]);
+							store.transport = scramjetPath("baremod/index.mjs");
 						}}>use bare server 3</button>
             <button on:click=${() => {
-							connection.setTransport("/libcurl/index.mjs", [
+							connection.setTransport(scramjetPath("libcurl/index.mjs"), [
 								{ wisp: store.wispurl },
 							]);
-							store.transport = "/libcurl/index.mjs";
+							store.transport = scramjetPath("libcurl/index.mjs");
 						}}>use libcurl.js</button>
               <button on:click=${() => {
-								connection.setTransport("/epoxy/index.mjs", [
+								connection.setTransport(scramjetPath("epoxy/index.mjs"), [
 									{ wisp: store.wispurl },
 								]);
-								store.transport = "/epoxy/index.mjs";
+								store.transport = scramjetPath("epoxy/index.mjs");
 							}}>use epoxy</button>
           </div>
         </div>
@@ -263,7 +267,9 @@ window.addEventListener("load", async () => {
 
 		return btoa(binary);
 	}
-	const arraybuffer = await (await fetch("/assets/scramjet.png")).arrayBuffer();
+	const arraybuffer = await (
+		await fetch(scramjetPath("assets/scramjet.png"))
+	).arrayBuffer();
 	console.log(
 		"%cb",
 		`

@@ -7,9 +7,11 @@ mkdir -p $DST
 cp -r node_modules/@mercuryworkshop/bare-mux/dist/ $DST/baremux
 cp -r node_modules/@mercuryworkshop/epoxy-transport/dist/ $DST/epoxy
 cp -r node_modules/@mercuryworkshop/libcurl-transport/dist/ $DST/libcurl
+cp -r node_modules/@mercuryworkshop/bare-as-module3/dist/ $DST/baremod
 cp -r assets/ $DST/assets
 cp -r dist/ $DST/scram
 cp -r static/* $DST
+touch $DST/.nojekyll
 
 if [ -d "_docs" ]; then
     cp -r _docs/ $DST/typedoc

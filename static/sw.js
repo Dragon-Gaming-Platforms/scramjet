@@ -1,5 +1,10 @@
 /// <reference path="../lib/index.d.ts" />
 
+function scramjetPath(path) {
+	const cleanPath = path.replace(/^\/+/, "");
+	return new URL(cleanPath, self.registration.scope).pathname;
+}
+
 // dumb hack to allow firefox to work (please dont do this in prod)
 if (navigator.userAgent.includes("Firefox")) {
 	Object.defineProperty(globalThis, "crossOriginIsolated", {
@@ -8,7 +13,7 @@ if (navigator.userAgent.includes("Firefox")) {
 	});
 }
 
-importScripts("/scram/scramjet.all.js");
+importScripts(scramjetPath("scram/scramjet.all.js"));
 const { ScramjetServiceWorker } = $scramjetLoadWorker();
 const scramjet = new ScramjetServiceWorker();
 
