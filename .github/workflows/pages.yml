@@ -1,9 +1,6 @@
-name: Deploy GitHub Pages
+name: Deploy static site to GitHub Pages
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
@@ -16,57 +13,64 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
-    name: Build static site
+  build-scramjet:
+    name: Build Scramjet
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: latest
+          version: 10.12.1
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-          cache: "pnpm"
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
 
-      - name: Setup Rust cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: "rewriter"
-          cache-all-crates: true
+      - name: Install wasm tooling
+        run: |
+          set -euo pipefail
 
-      - name: Install wasm-bindgen
-        uses: jetli/wasm-bindgen-action@v0.2.0
-        with:
-          version: "0.2.100"
+          sudo apt-get update
+          sudo apt-get install -y binaryen
 
-      - name: Setup Binaryen
-        uses: Aandreba/setup-binaryen@v1.0.0
-        with:
-          token: ${{ github.token }}
+          rustup toolchain install nightly
+          rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
+          rustup target add wasm32-unknown-unknown --toolchain nightly-x86_64-unknown-linux-gnu
 
-      - name: Install wasm-snip
-        run: cargo install --git https://github.com/r58playz/wasm-snip
+          cargo install wasm-bindgen-cli --version 0.2.100 --locked
+          cargo install --git https://github.com/r58Playz/wasm-snip.git wasm-snip --locked
+
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
       - name: Install dependencies
-        run: pnpm install
-
-      - name: Build rewriter
-        run: RELEASE=1 pnpm rewriter:build
+        run: pnpm install --config.unsafe-perm=true
 
       - name: Build Scramjet
-        run: pnpm build
+        run: |
+          set -euo pipefail
 
-      - name: Build static site
-        run: bash ci/build-static.sh
+          export PATH="$HOME/.cargo/bin:$PATH"
 
-      - name: Configure Pages
+          RELEASE=1 pnpm run rewriter:build
+          pnpm run build
+          bash ci/build-static.sh
+
+          echo "=== Built JS files ==="
+          find dist staticbuild -name "*.js" | sort
+          echo "=== Built WASM files ==="
+          find dist staticbuild -name "*.wasm" -o -name "*.wasm.wasm" | sort
+          echo "=== Static site contents ==="
+          find staticbuild -maxdepth 2 -type f | sort
+
+      - name: Setup Pages
         uses: actions/configure-pages@v5
 
       - name: Upload Pages artifact
@@ -75,9 +79,9 @@ jobs:
           path: staticbuild
 
   deploy:
-    name: Deploy static site
+    name: Deploy to GitHub Pages
+    needs: build-scramjet
     runs-on: ubuntu-latest
-    needs: build
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
