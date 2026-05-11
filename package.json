@@ -9,7 +9,9 @@
 	"packageManager": "pnpm@10.12.1",
 	"scripts": {
 		"dev": "node --no-warnings=ExperimentalWarning devserver.ts",
-		"preinstall": "npx only-allow pnpm"
+		"preinstall": "npx only-allow pnpm",
+		"rewriter:build": "cd packages/core/rewriter/wasm && bash build.sh",
+		"build": "pnpm -r run build"
 	},
 	"pnpm": {
 		"overrides": {
