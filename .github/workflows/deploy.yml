@@ -1,0 +1,94 @@
+name: Deploy static site to GitHub Pages
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-scramjet:
+    name: Build Scramjet
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Binaryen
+        uses: Aandreba/setup-binaryen@v1.0.0
+        with:
+          token: ${{ github.token }}
+
+      - name: Install wasm tooling
+        run: |
+          set -euo pipefail
+
+          rustup toolchain install nightly
+          rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
+          rustup target add wasm32-unknown-unknown --toolchain nightly-x86_64-unknown-linux-gnu
+
+          cargo install wasm-bindgen-cli --version 0.2.100 --locked
+          cargo install --git https://github.com/r58Playz/wasm-snip.git wasm-snip --locked
+
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Install dependencies
+        run: pnpm install --config.unsafe-perm=true
+
+      - name: Build Scramjet
+        run: |
+          set -euo pipefail
+
+          export PATH="$HOME/.cargo/bin:$PATH"
+
+          RELEASE=1 pnpm run rewriter:build
+          pnpm run build
+          bash ci/build-static.sh
+
+          echo "=== Built JS files ==="
+          find dist staticbuild -name "*.js" | sort
+          echo "=== Built WASM files ==="
+          find dist staticbuild -name "*.wasm" -o -name "*.wasm.wasm" | sort
+          echo "=== Static site contents ==="
+          find staticbuild -maxdepth 2 -type f | sort
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: staticbuild
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build-scramjet
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
