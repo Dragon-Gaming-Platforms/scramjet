@@ -306,7 +306,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [version-check, build, package-validation, tests, rewritertests]
     permissions: write-all
-    if: ${{ (github.ref == 'refs/heads/main') && (needs.version-check.outputs.scramjet_version_changed == 'true' || needs.version-check.outputs.controller_version_changed == 'true') }}
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Setup Node.js
@@ -333,10 +333,14 @@ jobs:
       - name: Publish Scramjet
         if: needs.version-check.outputs.scramjet_version_changed == 'true'
         run: npm publish mercuryworkshop-scramjet-${{ needs.version-check.outputs.scramjet_new_version }}.tgz --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish Scramjet Controller
         if: needs.version-check.outputs.controller_version_changed == 'true'
         run: npm publish mercuryworkshop-scramjet-controller-${{ needs.version-check.outputs.controller_new_version }}.tgz --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   frontend:
     name: Build Frontend
