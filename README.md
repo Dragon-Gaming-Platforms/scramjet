@@ -1,6 +1,6 @@
 <h1 align="center">Scramjet</h1>
 <div align="center">
-  <img src="assets/scramjet.png" height="200" />
+  <img src="https://raw.githubusercontent.com/Dragon-Gaming-Platforms/assets/main/dragon-login.png" height="200" />
 </div>
 
 <div align="center">
