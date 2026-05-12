@@ -58,6 +58,7 @@ jobs:
         run: pnpm run build
 
       - name: Setup staticbuild for deployment
+        shell: bash
         run: |
           set -euo pipefail
           
@@ -78,12 +79,12 @@ jobs:
           
           # Generate config.js with default configuration
           echo "✓ Generating config.js"
-          cat > staticbuild/config.js << 'EOF'
-let _CONFIG = {
-  wispurl: (location.protocol === "https:" ? "wss" : "ws") + "://" + location.host + "/wisp/",
-  bareurl: (location.protocol === "https:" ? "https" : "http") + "://" + location.host + "/bare/"
-};
-EOF
+          cat > staticbuild/config.js << 'JSEOF'
+          let _CONFIG = {
+            wispurl: (location.protocol === "https:" ? "wss" : "ws") + "://" + location.host + "/wisp/",
+            bareurl: (location.protocol === "https:" ? "https" : "http") + "://" + location.host + "/bare/"
+          };
+          JSEOF
           
           # Verify all required files exist
           echo "=== Verifying staticbuild contents ==="
