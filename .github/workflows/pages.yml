@@ -1,4 +1,6 @@
-name: Deploy static site to GitHub Pages
+name: Deploy Scramjet
+
+description: Deploy Scramjet to GitHub Pages
 
 on:
   workflow_dispatch:
