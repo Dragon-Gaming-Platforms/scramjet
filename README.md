@@ -1,12 +1,6 @@
 <h1 align="center">Scramjet</h1>
 <div align="center">
-  <img src="https://raw.githubusercontent.com/Dragon-Gaming-Platforms/assets/main/dragon-login.png" height="200" />
-</div>
-
-<div align="center">
-  <a href="https://www.npmjs.com/package/@mercuryworkshop/scramjet"><img src="https://img.shields.io/npm/v/@mercuryworkshop/scramjet.svg?maxAge=3600" alt="npm version" /></a>
-  <img src="https://img.shields.io/github/issues/MercuryWorkshop/scramjet?style=flat&color=orange" />
-  <img src="https://img.shields.io/github/stars/MercuryWorkshop/scramjet?style=flat&color=orange" />
+  <img src="https://raw.githubusercontent.com/Dragon-Gaming-Platforms/assets/main/dragon-login.png" height="425" />
 </div>
 
 ---
