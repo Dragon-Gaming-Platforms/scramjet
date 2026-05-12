@@ -11,6 +11,11 @@ let app = document.getElementById("app")!;
 let controller: InstanceType<typeof Controller>;
 const cachePlugin = new HttpCachePlugin();
 
+function appPath(path: string) {
+	const cleanPath = path.replace(/^\/+/, "");
+	return new URL(cleanPath, document.baseURI).pathname;
+}
+
 export function getTransport(): LibcurlClient | EpoxyClient {
 	const wispUrl = demoSettingsStore.wispUrl;
 	switch (demoSettingsStore.transport) {
@@ -95,6 +100,13 @@ async function init() {
 		controller = new Controller({
 			serviceworker: readySw,
 			transport: getTransport(),
+			config: {
+				prefix: appPath("~/sj/"),
+				scramjetPath: appPath("scramjet/scramjet.js"),
+				injectPath: appPath("controller/controller.inject.js"),
+				wasmPath: appPath("scramjet/scramjet.wasm"),
+				virtualWasmPath: "scramjet.wasm.js",
+			},
 			scramjetConfig: defaultConfigDev,
 		});
 		await controller.wait();
