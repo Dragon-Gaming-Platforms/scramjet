@@ -434,21 +434,25 @@
         };
         localStorage.setItem("scramjetConfig", JSON.stringify(config));
 
-        // Determine backend server
+        // Determine backend server (default to public Scramjet instance)
         let backendServer =
           backend === "custom" && customBackend
             ? customBackend
-            : window.location.origin;
+            : "https://scramjet.mercurywork.shop/";
+
+        if (!backendServer.endsWith("/")) {
+          backendServer += "/";
+        }
 
         // Create proxy iframe URL with config
         const configData = {
           targetUrl: url,
           transport: transport,
-          wispUrl: wispUrl || `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/wisp/`,
-          bareUrl: bareUrl || `${window.location.protocol === "https:" ? "https" : "http"}://${window.location.host}/bare/`,
+          wispUrl: wispUrl || `${backendServer}wisp/`,
+          bareUrl: bareUrl || `${backendServer}bare/`,
         };
 
-        const proxyPageUrl = `${backendServer}/index.html?config=${encodeURIComponent(btoa(JSON.stringify(configData)))}`;
+        const proxyPageUrl = `${backendServer}staticbuild/index.html?config=${encodeURIComponent(btoa(JSON.stringify(configData)))}`;
 
         // Load the proxy in the iframe
         const proxyFrame = document.getElementById("proxyFrame");
