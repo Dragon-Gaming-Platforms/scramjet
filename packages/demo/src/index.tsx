@@ -55,6 +55,11 @@ async function init() {
 	document.body.append(interstitial);
 	interstitial.showModal();
 
+	// Initialize Eruda early for debugging
+	if (typeof eruda !== 'undefined') {
+		eruda.init();
+	}
+
 	try {
 		const registration = await navigator.serviceWorker.register("./sw.js");
 
