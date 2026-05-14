@@ -25,7 +25,59 @@ const col = css`
 	flex-direction: column;
 `;
 
-connection.setTransport(store.transport, [{ wisp: store.wispurl }]);
+function transportOptions(transport) {
+	if (transport === "/baremod/index.mjs") return [store.bareurl];
+	return [{ wisp: store.wispurl }];
+}
+
+connection.setTransport(store.transport, transportOptions(store.transport));
+
+const standaloneConfig = globalThis.scramjetStandaloneConfig || {};
+const erudaSrc =
+	standaloneConfig.erudaSrc || "https://cdn.jsdelivr.net/npm/eruda";
+
+function installErudaConsole(frame) {
+	if (!standaloneConfig.eruda || frame.__standaloneErudaReady) return;
+	frame.__standaloneErudaReady = true;
+
+	const Plugin = globalThis.$scramjet?.Plugin;
+	if (!Plugin) return;
+
+	const plugin = new Plugin("standalone-eruda");
+	plugin.tap(frame.hooks.frameInit.post, (context) => {
+		if (!context.isTopLevel) return;
+
+		const targetWindow = context.window;
+		const targetDocument = targetWindow.document;
+		if (!targetDocument || targetWindow.__scramjetErudaInjected) return;
+		targetWindow.__scramjetErudaInjected = true;
+
+		const initEruda = () => {
+			if (!targetWindow.eruda) return;
+			targetWindow.eruda.init({
+				useShadowDom: true,
+				autoScale: true,
+				defaults: {
+					displaySize: 45,
+				},
+			});
+			targetWindow.eruda.position({ x: 20, y: 20 });
+		};
+
+		if (targetWindow.eruda) {
+			initEruda();
+			return;
+		}
+
+		const script = targetDocument.createElement("script");
+		script.src = erudaSrc;
+		script.onload = initEruda;
+		script.onerror = () => {
+			console.warn("Failed to load Eruda inside the proxied page");
+		};
+		(targetDocument.head || targetDocument.documentElement).appendChild(script);
+	});
+}
 
 function Config() {
 	this.css = `
@@ -194,8 +246,14 @@ function BrowserApp() {
 	this.url = store.url;
 
 	const frame = scramjet.createFrame();
+	installErudaConsole(frame);
 
 	this.mount = () => {
+		if (standaloneConfig.targetUrl) {
+			frame.go(standaloneConfig.targetUrl);
+			return;
+		}
+
 		let body = btoa(
 			`<body style="background: #000; color: #fff">Welcome to <i>Scramjet</i>! Type in a URL in the omnibox above and press enter to get started.</body>`
 		);

@@ -8,6 +8,13 @@ if (configParam) {
 		console.warn("Failed to parse config query parameter", err);
 	}
 }
+self.scramjetStandaloneConfig = config;
+
+function configuredTransport(transport) {
+	if (transport === "bare") return "/baremod/index.mjs";
+	if (transport === "wisp") return "/epoxy/index.mjs";
+	return transport || "/epoxy/index.mjs";
+}
 
 const store = $store(
 	{
@@ -27,7 +34,7 @@ const store = $store(
 				location.host +
 				"/bare/",
 		proxy: "",
-		transport: "/epoxy/index.mjs",
+		transport: configuredTransport(config.transport),
 	},
 	{ ident: "settings", backing: "localstorage", autosave: "auto" }
 );
