@@ -117,6 +117,21 @@
         transition: all 0.2s ease;
       }
 
+      .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-transform: none;
+        letter-spacing: 0;
+        cursor: pointer;
+      }
+
+      .checkbox-label input {
+        width: auto;
+        margin: 0;
+        accent-color: #FF6B6B;
+      }
+
       input:focus,
       select:focus,
       textarea:focus {
@@ -316,6 +331,18 @@
               placeholder="Auto-detected"
             />
           </div>
+
+          <div class="form-group">
+            <label class="checkbox-label" for="erudaEnabled">
+              <input
+                type="checkbox"
+                id="erudaEnabled"
+                checked
+              />
+              Eruda console in viewed page
+            </label>
+            <div class="info-text">Loads Eruda inside the proxied page so Elements shows the page DOM, not Scramjet's iframe shell</div>
+          </div>
         </div>
       </div>
 
@@ -342,12 +369,14 @@
         const backendSelect = document.getElementById("backendSelect");
         const wispUrl = document.getElementById("wispUrl");
         const bareUrl = document.getElementById("bareUrl");
+        const erudaEnabled = document.getElementById("erudaEnabled");
 
         if (urlInput) urlInput.value = saved.url || "https://google.com";
         if (transportSelect) transportSelect.value = saved.transport || "wisp";
         if (backendSelect) backendSelect.value = saved.backend || "local";
         if (wispUrl) wispUrl.value = saved.wispUrl || "";
         if (bareUrl) bareUrl.value = saved.bareUrl || "";
+        if (erudaEnabled) erudaEnabled.checked = saved.eruda !== false;
 
         if (saved.backend === "custom") {
           const customBackendGroup = document.getElementById("customBackendGroup");
@@ -405,6 +434,7 @@
         const wispUrlInput = document.getElementById("wispUrl");
         const bareUrlInput = document.getElementById("bareUrl");
         const customBackendInput = document.getElementById("customBackend");
+        const erudaEnabledInput = document.getElementById("erudaEnabled");
 
         if (!urlInput || !transportSelect || !backendSelect) return;
 
@@ -414,6 +444,7 @@
         const wispUrl = (wispUrlInput?.value || "").trim();
         const bareUrl = (bareUrlInput?.value || "").trim();
         const customBackend = (customBackendInput?.value || "").trim();
+        const eruda = erudaEnabledInput?.checked !== false;
 
         // Validate URL
         try {
@@ -431,6 +462,7 @@
           wispUrl,
           bareUrl,
           customBackend,
+          eruda,
         };
         localStorage.setItem("scramjetConfig", JSON.stringify(config));
 
@@ -450,6 +482,7 @@
           transport: transport,
           wispUrl: wispUrl || `${backendServer}wisp/`,
           bareUrl: bareUrl || `${backendServer}bare/`,
+          eruda,
         };
 
         const proxyPageUrl = `${backendServer}staticbuild/index.html?config=${encodeURIComponent(btoa(JSON.stringify(configData)))}`;
